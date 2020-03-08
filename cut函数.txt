@@ -1,0 +1,17 @@
+#cut函数可以将一个连续型变量转换成分类变量
+#x代表一个将要被切成分类变量的数值向量。
+#breaks指把这个x切分成几段,其也可以为向量。
+#labels默认是（a,b]，如果为FALSE，则表示在分类变量中的排列顺序。
+#include.lowest是一个逻辑值
+#right逻辑值,为TRUE时，右半边闭合。
+#diag.lab是一个整数,它比小数点多1。
+#ordered_result是一个逻辑值
+Z <- stats::rnorm(10000)
+table(cut(Z, breaks = -6:6))#指位于这个区间中的个数
+sum(table(cut(Z, breaks = -6:6, labels = FALSE)))
+p1<-hist(Z, breaks = -6:6)
+## one way to extract the breakpoints
+aaa <- c(1,2,3,4,5,2,3,4,5,6,7)
+labs <- levels(cut(aaa, 3))
+cbind(lower = as.numeric( sub("\\((.+),.*", "\\1", labs) ),
+      upper = as.numeric( sub("[^,]*,([^]]*)\\]", "\\1", labs) ))
