@@ -1,0 +1,26 @@
+library(CBCgrps)
+library(nortest)
+data(dt)
+head(dt)
+str(dt)
+tab1<-twogrps(dt,gvar = "mort")#gvar指分组变量
+print(tab1,quote = T)#复制到word上之后，将文字转化成表格
+write.csv(tab1,file = "tab1.csv")#数据导出
+#多组的比较
+tab2<-multigrps(dt,gvar = "type")
+print(tab2,quote = T)
+#需要选择性比较变量，用varlist参数实现该功能
+tabVarlist<-twogrps(dt,gvar = "mort",
+                    varlist = c("age","wbc","vaso"))
+print(tabVarlist,quote = T)
+#小数点位数的保留(这种做法会把所有符合正态分布的变量都保留1位)
+tabDecimal<-twogrps(dt,gvar = "mort",norm.rd = 1)
+print(tabDecimal,quote = T)
+#对分类变量则是cat.rd=1,即保留1位小数。
+#对P值小于多少就不显示了
+tabPShow<-twogrps(dt,gvar = "mort",p.rd = 1)
+print(tabPShow,quote = T)
+#正态分布的判定，可以人为的设定非正态的分布的变量skewvar=c("crp","wbc")
+#显示统计量
+tabStatistic<-twogrps(dt,gvar = "mort",ShowStatistic=T)
+print(tabStatistic)
