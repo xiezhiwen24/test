@@ -1,0 +1,29 @@
+#生存分析,结局中删失意味着生存
+#导入数据
+library(survival)
+library(broom)
+pancer<-read.csv("pancer.csv")
+#进行数据的整理，对部分变量进行因子化
+fvars<-c("sex","trt","bui","ch","p","stage")
+pancer[fvars]<-lapply(pancer[fvars],factor)
+#或者一个一个进行as.factor()
+#接着开展K-M分析，进行logRank分析
+fit<-survfit(Surv(time,censor)~trt,data = pancer)
+print(fit)
+summary(fit)
+#绘制生存曲线图
+plot(fit,main="Kaplan-Meier curves of two groups",
+     xlab = "time",ylab = "surviaval function")
+#进行logRank检验
+survdiff(Surv(time,censor)~trt,data = pancer,rho = 0)
+#进行COX回归分析
+mycox<-coxph(Surv(time,censor)~age+sex+bui+ch+p+stage
+             +trt,data = pancer)
+summary(mycox)
+exp(coef(mycox))#计算HR值
+exp(confint(mycox))#计算置信区间
+#broom函数的应用
+tidy(mycox,exponentiate = TRUE)
+glance(mycox)
+pancer<-augment(mycox,pancer)
+str(pancer)
