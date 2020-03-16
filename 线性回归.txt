@@ -1,0 +1,94 @@
+在spss中的实现方法：
+1、一元线性回归模型
+1）导入数据
+2）预分析：散点图
+“图形”选项卡   → 点击“详细”→  在可视化类型中选择“散点图”→  然后设置X轴与Y轴
+散点图的结果及解释
+3）正式分析
+   点击“分析”选项卡 →  选择“相关（C）”中的“双变量（B）”，然后把变量全部选入“变量”中
+皮尔逊：又称线性相关系数，是定量表述两个连续变量间线性关系密切程度和相关方向的统计指标。另外两个
+相关系数均为等级相关系数，最后按下确认。
+
+2.多重线性回归分析
+1）导入数据
+2）分析 → 回归 → 线性 → 选择“自变量”与“因变量”→ 方法选择“步进”，也称“逐步”→ 点开图进行选择 →  勾选“直方图”和“正态概率图”
+3）查看结果及其解释：，逐步回归法，R方，ANOVA，系数，直方图和正态概率图（P-P图）（独立性、正态性和方差齐性）
+
+3.秩相关分析
+例子：0代表-，1代表±，2代表+，3代表++，4代表+++
+1）变量视图和数据视图界面
+   ①在变量视图界面输入变量的信息，②值标签：在变量视图中，点击“值”，来赋值，③在数据视图输入数据
+2）分析→相关→双变量→将所有变量选入“变量”中→斯皮尔曼→确定
+
+在R中的实现方法
+#准备工作
+t1<-read.csv("elder1.csv")
+t2<-read.csv("elder2.csv")
+str(t1)
+str(t2)#紧凑的显示任意R对象的结构
+library(dplyr)
+tt<-inner_join(t1,t2,by="ID")
+str(tt)
+write.csv(tt,file = "tt.csv")
+#简单线性回归
+age=18:29
+height=c(76.1,77,78.1,78.2,78.8,79.7,79.9,81.1,81.2,81.8,82.8,83.5)
+plot(age,height,main = "身高与年龄散点图")#画散点图
+lm.reg<-lm(height~age)#构建回归方程
+abline(lm.reg)#画出拟合的线性回归线
+anova(lm.reg)#模型方差分析,X为分类变量，Y为连续型变量
+summary(lm.reg)
+#多因素线性回归分析
+tt<-mutate(tt,bmi=weight/(height^2)*10000)#产生新的变量
+tt1<-na.omit(tt)
+lm.reg<-lm(health~SBP+DBP+TC+sugar+bmi+TG,data = tt1)
+summary(lm.reg)
+lm.step<-step(lm.reg)#逐步回归方法，保证数据不含缺失值
+summary(lm.step)#逐步回归方法分析结果
+#自变量为分类变量时的处理
+tt1$marriage<-factor(tt1$marriage,levels = c(2,1,3,4))
+table(tt1$marriage)
+#进一步分类
+tt1$income1<-tt1$income
+tt1$income1[tt1$income>=6]<-3
+#还可以借助lapply函数进行批量数据处理
+#多因素线性回归分析结果的提取
+#回归诊断,一个好的回归必须结合回归诊断。它包括对数据正态性、独立性、方差齐性，共线性的诊断
+#1.通过残差图来诊断
+plot(fitted(lm.step),resid(lm.step))
+plot(fitted(lm.step),resid(lm.step),cex=1.2,pch=21,
+     col="red",bg="orange",xlab = "Fitted Value",ylab = "Residuals")
+par(mfrow=c(2,2))
+plot(lm.step,which = c(1:4))
+#2.残差独立性检验（car包）
+library(car)
+durbinWatsonTest(lm.step)#残差独立性检验
+#3.共线性诊断
+#方差膨胀因子分析
+vif(lm.step)
+#特征根分析
+XX<-cor(tt1[c("SBP","DBP")],use = "complete.obs")
+XX
+kappa(XX,exact = TRUE)
+eigen(XX)
+
+用R进行logistic回归分析
+#更多的数据导出
+fitted(glm.step)
+residuals(glm.step)
+plot(residuals(glm.step))
+plot(glm.step)
+tt<-predict(glm.step,type="response")#给出阳性事件的预测值
+lines(t2$a27,predict(glm.step,type="response"))
+plot(predict(glm.step,type="response"),residuals(glm.step,type="deviance))
+
+broom包在回归分析中的应用
+第一个函数
+t5<-tidy(lm.step)等价于coef(summary(glm.step)[,c(1-7)]
+write.csv(t5,file="t5.csv")
+第二个函数
+glance(lm.step)
+第三个函数
+t4<-augement(lm.step,tt1)
+str(t4)
+
